@@ -1,0 +1,81 @@
+name: Feature Request
+description: Suggest a new feature or improvement for latamhub. Use this template for new capabilities, UX enhancements, or non-trivial changes to existing behavior.
+title: "feat(scope): "
+labels:
+  - enhancement
+  - status:needs-review
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature for **latamhub**. Please complete every required section so the maintainers can evaluate the request quickly.
+
+        > **Workflow reminder:** New issues start with the `status:needs-review` label. A maintainer must add `status:approved` before any PR can be opened. See the `branch-pr` skill for PR requirements.
+
+  - type: checkboxes
+    id: pre-flight
+    attributes:
+      label: Pre-flight Checks
+      description: Please confirm both before submitting. Both items are required.
+      options:
+        - label: I have searched existing issues and confirmed this is not a duplicate.
+          required: true
+        - label: I understand this issue needs `status:approved` from a maintainer before a PR can be opened.
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Description
+      description: What problem or pain point does this feature solve? Who is affected, and why does it matter?
+      placeholder: |
+        Describe the current situation, the user impact, and the desired outcome.
+        Be as specific as you can — link related issues, user feedback, or metrics if available.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How should this work from the user's perspective? Describe the expected behavior, API, or UX.
+      placeholder: |
+        Describe the proposed feature in user-facing terms.
+        Include code examples, mockups, or step-by-step flows when helpful.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: affected-area
+    attributes:
+      label: Affected Area
+      description: Which part of the project does this feature touch?
+      options:
+        - Frontend (Next.js / React)
+        - Backend (Supabase / Edge Functions)
+        - Database / Schema / Migrations
+        - Authentication / Authorization
+        - UI / Design System / Components
+        - Documentation
+        - CI / Workflows / Tooling
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Other approaches or workarounds you considered. (Optional)
+      placeholder: |
+        List alternative designs, libraries, or workarounds and explain why you chose the proposed solution over them.
+        If you considered doing nothing, mention that too.
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Mockups, screenshots, references, related issues, or anything else relevant. (Optional)
+      placeholder: |
+        Links to docs, prior art, competitor features, or related issues.
+        Paste logs or code blocks in fenced code blocks.

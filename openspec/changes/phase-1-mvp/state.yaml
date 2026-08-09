@@ -1,0 +1,105 @@
+change: phase-1-mvp
+project: latamhub
+root: C:\Users\ACER\OneDrive\Escritorio\JD\JUAN\SideProjects\startupLATAM\latamhub
+phase: apply-unit-1-complete
+last_updated: 2026-08-09T13:10:00Z
+
+artifact_store: hybrid        # OpenSpec files + Engram topics
+delivery_strategy: force-chained
+chain_strategy: stacked-to-main
+review_budget: 800            # changed lines per PR
+
+artifacts:
+  exploration: true
+  proposal: true
+  specs: true                 # directory, filters, pagination, states, detail
+  design: true                # corrected in this pass (gate review)
+  tasks: true
+  apply_progress:
+    - obs-59                  # Work Unit 1 — infrastructure foundation (PR 1 / 6)
+  verify_report: true
+  archive_report: false
+
+spec_domains:
+  - startup-directory
+  - startup-filters
+  - directory-pagination
+  - directory-states
+  - startup-detail
+
+gemini_gate_review:
+  status: resolved
+  resolved_findings:
+    - id: filter-url-sync
+      prior: design kept filters in component state; only ?page=N in URL
+      resolution: URL search params are now the single source of truth for all filters + page
+      spec_evidence: startup-directory "URL reflects the selected filter state"; directory-pagination "URL reflects page 2"
+    - id: industry-multiselect
+      prior: industry cardinality left as open question
+      resolution: multi-select checkboxes; URL encodes repeated industry=<slug> keys
+      spec_evidence: startup-filters "filter by one or more industry values"
+    - id: missing-state-artifact
+      prior: no state.yaml / no Engram state topic in hybrid mode -> compaction-recovery gap
+      resolution: state.yaml + sdd/phase-1-mvp/state bootstrapped here by sdd-design executor
+      caveat: ongoing phase transitions belong to the orchestrator (persistence-contract §State Persistence)
+    - id: mobile-filter-behavior
+      prior: not explicit
+      resolution: <details> disclosure stacked above grid on <md; same FilterPanel as sticky aside on >=md
+    - id: homepage-metadata
+      prior: relied on root layout.tsx metadata
+      resolution: explicit export const metadata in app/page.tsx (directory title/desc/canonical / / OG es_CO)
+    - id: slice-6-boundary
+      prior: heterogeneous (SEO + coming-soon badge + mobile verification + lint)
+      resolution: coming-soon moved to slice 3; mobile behaviour to slice 3; homepage metadata to slice 4; detail SEO to slice 5; slice 6 = SEO consistency + quality-gate closure (<=250 lines)
+
+current_pr_slice:
+  number: 1
+  of: 6
+  work_unit: 1
+  name: Infrastructure foundation
+  base: main
+  branch: feat/phase-1-directory-foundation
+  delivery: stacked-to-main
+  files:
+    - .gitignore
+    - src/lib/queries.ts
+    - src/lib/filtering.ts
+    - src/lib/constants.ts
+    - src/hooks/use-debounce.ts
+    - openspec/changes/phase-1-mvp/tasks.md
+    - openspec/changes/phase-1-mvp/state.yaml
+    - openspec/changes/phase-1-mvp/verify-report.md
+  verification:
+    typecheck: pass
+    lint: pass
+    build: pass
+  verify_report: obs-63
+  verdict: "PASS WITH WARNINGS"
+  pushed: false
+  pr_opened: false
+
+untracked_planning_artifacts:
+  description: |
+    Proposal, exploration, specs, and design remain in the working tree untracked.
+    They will be committed in a later planning/artifact commit, not in PR 1.
+  files:
+    - openspec/changes/phase-1-mvp/proposal.md
+    - openspec/changes/phase-1-mvp/exploration.md
+    - openspec/changes/phase-1-mvp/design.md
+    - openspec/changes/phase-1-mvp/specs/
+
+next_recommended: sdd-apply — Unit 2 (presentational components, PR 2/6)
+
+notes:
+  - State artifact bootstrapped by the sdd-design executor to unblock compaction recovery.
+    The orchestrator owns all subsequent updates of this file (per persistence-contract.md).
+  - 'correction pass launched after gate review blocked task planning on the filter-URL conflict
+    (Engram obs #56 "Design gate found Phase 1 contract conflicts").'
+  - 'Reconciliation pass (this update) addresses the CRITICAL warning in verify-report obs #63:
+    ''tasks'', ''apply_progress'', and ''verify_report'' were not flipped in state.yaml after
+    sdd-tasks and sdd-apply completed. This file now reflects the actual on-disk truth.'
+  - 'chain_strategy locked to ''stacked-to-main'' by the user during the PR 1 packaging step;
+    tasks.md still carries the historic "Chain strategy: pending" label but the apply
+    progress, the verify report, and the PR slice itself all act on stacked-to-main.'
+  - PR 1 commit created on branch `feat/phase-1-directory-foundation`; no push, no PR
+    opened (per the packaging instructions).
