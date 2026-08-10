@@ -9,16 +9,16 @@
 | Chained PRs recommended | Yes |
 | Suggested split | 6 chained slices (see below) |
 | Delivery strategy | force-chained |
-| Chain strategy | pending |
+| Chain strategy | stacked-to-main |
 
 ```
-Decision needed before apply: Yes (chain strategy: stacked-to-main | feature-branch-chain)
+Decision needed before apply: No
 Chained PRs recommended: Yes
-Chain strategy: pending
+Chain strategy: stacked-to-main
 400-line budget risk: High
 ```
 
-> **Orchestrator must obtain user's chain strategy before sdd-apply.** The delivery strategy is `force-chained` (6 slices locked), but the chain topology (stacked-to-main vs feature-branch-chain) is pending user choice.
+> **Chain strategy locked to `stacked-to-main`.** Each PR targets `main` after the previous PR merges (or, during stacking, the previous PR's branch). Work Unit 1 = PR 1, base = `main`. Work Unit 2 = PR 2, base = `main` after PR #1 merge (`533a25c`).
 
 ---
 
@@ -51,13 +51,49 @@ Each slice: clear start → clear finish → autonomous scope → `bun run lint 
 
 ## Phase 2: Presentational Components (Unit 2)
 
-- [ ] 2.1 Create `src/components/startup-row.tsx` — Port from prototype; null-safe display; `Link` to `/startups/[slug]`; shows: logo, name, industry, stage, city, jobs count
-- [ ] 2.2 Create `src/components/startup-grid.tsx` — Row-list layout (not 3-col grid); wraps `startup-row`; shows "X resultados" count; renders `empty-state` when rows=0
-- [ ] 2.3 Create `src/components/pagination.tsx` — Numbered page buttons (1–N); highlights current page; disables prev on page 1, next on last page; each button updates `page` URL param via `buildDirectoryUrl`
-- [ ] 2.4 Create `src/components/empty-state.tsx` — Reusable `{icon,title,hint,action?}` component for distinct empty/error/incomplete states
+- [x] 2.1 Create `src/components/startup-row.tsx` — Port from prototype; null-safe display; `Link` to `/startups/[slug]`; shows: logo, name, industry, stage, city, jobs count
+- [x] 2.2 Create `src/components/startup-grid.tsx` — Row-list layout (not 3-col grid); wraps `startup-row`; shows "X resultados" count; renders `empty-state` when rows=0
+- [x] 2.3 Create `src/components/pagination.tsx` — Numbered page buttons (1–N); highlights current page; disables prev on page 1, next on last page; each button updates `page` URL param via `buildDirectoryUrl`
+- [x] 2.4 Create `src/components/empty-state.tsx` — Reusable `{icon,title,hint,action?}` component for distinct empty/error/incomplete states
 
 **Verification**: `bun run lint && bun run typecheck && bun run build`  
 **Rollback**: delete component files
+
+#### Unit 2 Handoff Note — `<Pagination/>` uses `buildHref(page)`, not `buildDirectoryUrl`
+
+Task 2.3's wording says each button "updates `page` URL param via `buildDirectoryUrl`", but the
+implemented `src/components/pagination.tsx` does **not** import `buildDirectoryUrl`. Instead it
+takes a `buildHref: (page: number) => string` callback prop and renders real
+`<Link href={buildHref(p)} replace scroll={false}>` elements.
+
+**Why this preserves URL SSOT (it is intentional, not a deviation):**
+
+- The component stays decoupled from the filter contract. It receives only `currentPage`,
+  `totalPages`, and the URL builder — never `DirectoryFilter`, `useSearchParams`, or
+  `buildDirectoryUrl` itself.
+- The parent (`DirectoryClient`, Unit 4) remains the single venue that calls
+  `buildDirectoryUrl`. The recommended wiring is:
+  ```tsx
+  <Pagination
+    currentPage={filter.page}
+    totalPages={totalPages}
+    buildHref={(page) => buildDirectoryUrl({ ...filter, page }, pathname)}
+  />
+  ```
+- `<Link replace scroll={false}>` is exactly `router.replace(url, { scroll: false })` from the
+  design's data-flow (decision §4) — encoded directly in the Link props, not via a parent-side
+  callback. Same effect, smaller parent, no hydration risk.
+- SEO + a11y wins: real `href`s in the markup (crawlable, right-click "open in new tab",
+  screen-reader announced as links) versus a button + `onPageChange` that goes through the
+  parent's `router.replace` would lose.
+
+**What the component does NOT do** (left to Unit 4): it does not read `useSearchParams`, does
+not slice or paginate, does not own URL mutation policy beyond the per-Link `replace` +
+`scroll={false}` props. If Unit 4 forgets to pass `buildHref`, the `<Link>` renders
+`href={undefined}` and Next.js fails the build — caught at compile time.
+
+Reference: see `src/components/pagination.tsx` docblock and the Unit 2 apply-progress
+observation (`sdd/phase-1-mvp/apply-progress`) for the full design rationale.
 
 ---
 
@@ -139,4 +175,6 @@ Each slice: clear start → clear finish → autonomous scope → `bun run lint 
 
 ## Next Step
 
-**Await chain strategy decision from user** (stacked-to-main vs feature-branch-chain) before `sdd-apply`.
+Chain strategy is `stacked-to-main`. Proceed with `sdd-apply` for **Work Unit 3** (filter
+family + mobile `<details>` disclosure + coming-soon countries, PR 3/6) once this slice is
+merged.
