@@ -1,8 +1,8 @@
 change: phase-1-mvp
 project: latamhub
 root: C:\Users\ACER\OneDrive\Escritorio\JD\JUAN\SideProjects\startupLATAM\latamhub
-phase: apply-unit-1-complete
-last_updated: 2026-08-09T13:10:00Z
+phase: apply-unit-2-complete
+last_updated: 2026-08-09T23:30:00Z
 
 artifact_store: hybrid        # OpenSpec files + Engram topics
 delivery_strategy: force-chained
@@ -17,7 +17,10 @@ artifacts:
   tasks: true
   apply_progress:
     - obs-59                  # Work Unit 1 — infrastructure foundation (PR 1 / 6)
-  verify_report: true
+    - obs-59                  # Work Unit 2 — presentational components (PR 2 / 6) — merged into same apply-progress topic
+  verify_report:
+    - obs-63                  # Work Unit 1 verify report
+    - obs-75                  # Work Unit 2 verify report
   archive_report: false
 
 spec_domains:
@@ -53,27 +56,27 @@ gemini_gate_review:
       resolution: coming-soon moved to slice 3; mobile behaviour to slice 3; homepage metadata to slice 4; detail SEO to slice 5; slice 6 = SEO consistency + quality-gate closure (<=250 lines)
 
 current_pr_slice:
-  number: 1
+  number: 2
   of: 6
-  work_unit: 1
-  name: Infrastructure foundation
-  base: main
-  branch: feat/phase-1-directory-foundation
+  work_unit: 2
+  name: Presentational components
+  base: 533a25c           # Merge PR #1 (Unit 1) into main
+  branch: feat/phase-1-directory-row-grid-pagination
   delivery: stacked-to-main
   files:
-    - .gitignore
-    - src/lib/queries.ts
-    - src/lib/filtering.ts
-    - src/lib/constants.ts
-    - src/hooks/use-debounce.ts
+    - src/components/startup-row.tsx
+    - src/components/startup-grid.tsx
+    - src/components/pagination.tsx
+    - src/components/empty-state.tsx
     - openspec/changes/phase-1-mvp/tasks.md
     - openspec/changes/phase-1-mvp/state.yaml
-    - openspec/changes/phase-1-mvp/verify-report.md
+  defensive_fixes:
+    - src/components/startup-row.tsx: countryLabel now uses COUNTRY_LABELS[startup.country] ?? startup.country (matches industryLabel/stageLabel fallback pattern)
   verification:
     typecheck: pass
     lint: pass
     build: pass
-  verify_report: obs-63
+  verify_report: obs-75
   verdict: "PASS WITH WARNINGS"
   pushed: false
   pr_opened: false
@@ -81,25 +84,39 @@ current_pr_slice:
 untracked_planning_artifacts:
   description: |
     Proposal, exploration, specs, and design remain in the working tree untracked.
-    They will be committed in a later planning/artifact commit, not in PR 1.
+    They will be committed in a later planning/artifact commit, not in PR 2.
   files:
     - openspec/changes/phase-1-mvp/proposal.md
     - openspec/changes/phase-1-mvp/exploration.md
     - openspec/changes/phase-1-mvp/design.md
     - openspec/changes/phase-1-mvp/specs/
 
-next_recommended: sdd-apply — Unit 2 (presentational components, PR 2/6)
+next_recommended: sdd-apply — Unit 3 (filter family + mobile <details> + coming-soon countries, PR 3/6)
 
 notes:
   - State artifact bootstrapped by the sdd-design executor to unblock compaction recovery.
     The orchestrator owns all subsequent updates of this file (per persistence-contract.md).
   - 'correction pass launched after gate review blocked task planning on the filter-URL conflict
     (Engram obs #56 "Design gate found Phase 1 contract conflicts").'
-  - 'Reconciliation pass (this update) addresses the CRITICAL warning in verify-report obs #63:
-    ''tasks'', ''apply_progress'', and ''verify_report'' were not flipped in state.yaml after
-    sdd-tasks and sdd-apply completed. This file now reflects the actual on-disk truth.'
+  - 'Unit 1 transition: verify-report obs #63 flagged that ''tasks'', ''apply_progress'', and
+    ''verify_report'' were not flipped in state.yaml after sdd-tasks and sdd-apply completed.
+    state.yaml now reflects the actual on-disk truth for both Unit 1 and Unit 2.'
   - 'chain_strategy locked to ''stacked-to-main'' by the user during the PR 1 packaging step;
-    tasks.md still carries the historic "Chain strategy: pending" label but the apply
-    progress, the verify report, and the PR slice itself all act on stacked-to-main.'
-  - PR 1 commit created on branch `feat/phase-1-directory-foundation`; no push, no PR
-    opened (per the packaging instructions).
+    tasks.md and state.yaml both carry the locked value as of the Unit 2 transition.'
+  - 'Unit 2 transition: tasks.md now shows Unit 2 tasks as [x] (preserved Unit 1 marks),
+    chain strategy updated from "pending" to "stacked-to-main", and a Unit 2 handoff note
+    documents the intentional <Pagination/> buildHref(page) prop and how it preserves the
+    URL SSOT (parent DirectoryClient owns buildDirectoryUrl, the component renders real
+    <Link replace scroll={false}> elements).'
+  - 'Unit 2 verify-report obs #75 flagged a WARNING about a missing defensive fallback in
+    <StartupRow/> for countryLabel. A small defensive fix was applied: countryLabel now uses
+    COUNTRY_LABELS[startup.country] ?? startup.country, matching the industryLabel and
+    stageLabel fallback patterns.'
+  - 'Unit 2 work uncommitted at session end (all four component files were untracked at the
+    time of the fresh review). The current packaging step stages ONLY the four component
+    files + the two proof artifacts (tasks.md, state.yaml); proposal, exploration, design,
+    specs/, and config.yaml remain untracked and out of scope.'
+  - PR 1 commit created on branch `feat/phase-1-directory-foundation`; merged into `main` at
+    `533a25c` (obs #63).
+  - PR 2 commit in progress on branch `feat/phase-1-directory-row-grid-pagination`; no push,
+    no PR opened (per the packaging instructions).
