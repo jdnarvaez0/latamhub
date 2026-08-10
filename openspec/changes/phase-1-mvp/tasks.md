@@ -252,6 +252,7 @@ Key contracts and decisions for Unit 4:
 
 ## Next Step
 
-Chain strategy is `stacked-to-main`. Proceed with `sdd-apply` for **Work Unit 4** (DirectoryClient
-island + homepage wiring + explicit `metadata`, PR 4/6) once this slice is merged. The Unit 3
-filter family ships as the controlled-input layer that Unit 4's `DirectoryClient` composes.
+Chain strategy is `stacked-to-main`. Proceed with `sdd-apply` for **Work Unit 3B** (city, search,
+filter panel, and mobile disclosure), then Work Unit 4 (DirectoryClient island + homepage wiring)
+after both Unit 3 slices are merged. The Unit 3 filter family ships as the controlled-input layer
+that Unit 4's `DirectoryClient` composes.

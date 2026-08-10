@@ -2,7 +2,7 @@ change: phase-1-mvp
 project: latamhub
 root: C:\Users\ACER\OneDrive\Escritorio\JD\JUAN\SideProjects\startupLATAM\latamhub
 phase: apply-unit-3a-complete
-last_updated: 2026-08-10T11:45:00Z
+last_updated: 2026-08-10T12:10:00Z
 
 artifact_store: hybrid        # OpenSpec files + Engram topics
 delivery_strategy: force-chained
@@ -22,7 +22,7 @@ artifacts:
   verify_report:
     - obs-63                  # Work Unit 1 verify report
     - obs-75                  # Work Unit 2 verify report
-    - pending                 # Work Unit 3A verify report (next packaging handoff)
+    - obs-81                  # Work Unit 3A verify report
   archive_report: false
 
 spec_domains:
@@ -78,8 +78,8 @@ current_pr_slice:
     typecheck: pass
     lint: pass
     build: pass
-  verify_report: pending         # next apply batch writes obs-<n>
-  verdict: "READY FOR VERIFY"
+  verify_report: obs-81
+  verdict: "PASS WITH WARNINGS"
   pushed: false
   pr_opened: false
 
@@ -121,7 +121,8 @@ notes:
     city) centralized in FilterPanel; coming-soon enforcement lives in CountryFilter; city-select
     uses __all__ sentinel for the native <select>; search-input debounces via useDebounce(250);
     <FilterPanel> uses one <details> for both desktop sticky aside and mobile disclosure,
-    with a useEffect forcing open on >=768px.'
+     with a useEffect forcing open on >=768px. PR 3B owns the remaining city, search, panel,
+     mobile disclosure, and barrel-export files.'
   - PR 1 commit created on branch `feat/phase-1-directory-foundation`; merged into `main` at
     `533a25c` (obs #63).
   - PR 2 commit (`ce30eb0`) on branch `feat/phase-1-directory-row-grid-pagination`;
