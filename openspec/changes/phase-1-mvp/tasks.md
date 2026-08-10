@@ -4,10 +4,10 @@
 
 | Field | Value |
 |-------|-------|
-| Estimated changed lines | ~1,100–1,500 total; 6 slices ≤400 each |
+| Estimated changed lines | ~1,100–1,500 total; 7 slices ≤800 each |
 | 400-line budget risk | High |
 | Chained PRs recommended | Yes |
-| Suggested split | 6 chained slices (see below) |
+| Suggested split | 7 chained slices (see below) |
 | Delivery strategy | force-chained |
 | Chain strategy | stacked-to-main |
 
@@ -28,8 +28,9 @@ Chain strategy: stacked-to-main
 |------|------|----------|------|-------------|
 | 1 | Infrastructure foundation (queries, filtering, constants, hooks) | PR 1 | `main` | `bun run lint && bun run typecheck && bun run build` |
 | 2 | Presentational components (row, grid, pagination, empty-state) | PR 2 | `main` | same gates |
-| 3 | Filter family + mobile `<details>` disclosure + coming-soon countries | PR 3 | `main` | same gates |
-| 4 | DirectoryClient island + homepage (`<Suspense>` + metadata export) | PR 4 | `main` | same gates |
+| 3A | Core filters (country, industry, stage, modality) | PR 3A | `main` | same gates |
+| 3B | City, search, filter panel, and mobile disclosure | PR 3B | `main` after PR 3A | same gates |
+| 4 | DirectoryClient island + homepage (`<Suspense>` + metadata export) | PR 4 | `main` after PR 3B | same gates |
 | 5 | Detail page (`/startups/[slug]`) + SEO + not-found | PR 5 | `main` | same gates |
 | 6 | SEO canonical consistency + quality-gate closure | PR 6 | `main` | same gates |
 
@@ -99,17 +100,93 @@ observation (`sdd/phase-1-mvp/apply-progress`) for the full design rationale.
 
 ## Phase 3: Filter Family + Mobile Behavior (Unit 3)
 
-- [ ] 3.1 Create `src/components/filters/country-filter.tsx` — Radio/checkgroup; CO active; **BR/CL/AR/MX disabled + "Próximamente" tooltip + count 0**; onChange calls `buildDirectoryUrl` (clears city when country changes)
-- [ ] 3.2 Create `src/components/filters/industry-filter.tsx` — **Multi-select checkboxes**; `values: string[]` prop; each checkbox toggles its slug in the array; renders via `INDUSTRY_LABELS`; URL encoding: repeated `industry=<slug>` keys
-- [ ] 3.3 Create `src/components/filters/stage-filter.tsx` — Single-select; `STAGE_LABELS` display
-- [ ] 3.4 Create `src/components/filters/modality-filter.tsx` — Single-select; `MODALITY_LABELS` display
+- [x] 3.1 Create `src/components/filters/country-filter.tsx` — Radio/checkgroup; CO active; **BR/CL/AR/MX disabled + "Próximamente" tooltip + count 0**; onChange calls `buildDirectoryUrl` (clears city when country changes)
+- [x] 3.2 Create `src/components/filters/industry-filter.tsx` — **Multi-select checkboxes**; `values: string[]` prop; each checkbox toggles its slug in the array; renders via `INDUSTRY_LABELS`; URL encoding: repeated `industry=<slug>` keys
+- [x] 3.3 Create `src/components/filters/stage-filter.tsx` — Single-select; `STAGE_LABELS` display
+- [x] 3.4 Create `src/components/filters/modality-filter.tsx` — Single-select; `MODALITY_LABELS` display
 - [ ] 3.5 Create `src/components/filters/city-select.tsx` — **Disabled unless country=CO**; city options derived from current country; cleared when country cleared
 - [ ] 3.6 Create `src/components/filters/search-input.tsx` — Text input; debounced via `useDebounce` (~250ms); `useCallback` stable reference
 - [ ] 3.7 Create `src/components/filters/filter-panel.tsx` — Composes all filter sub-components; desktop: sticky aside; **mobile (<md): `<details>` disclosure stacked above grid; mobile uses same FilterPanel** (not a separate component)
 - [ ] 3.8 Verify coming-soon tooltip + disabled state on BR/CL/AR/MX; verify city-select disabled without country
 
+#### Unit 3A Handoff Note
+
+PR 3A contains the shared option contract and core country, industry, stage, and modality controls. PR 3B contains city selection, debounced search, the composed filter panel, mobile `<details>` behavior, and the barrel export. Unit 3B must preserve the controlled props and URL SSOT contract established here.
+
 **Verification**: `bun run lint && bun run typecheck && bun run build`  
 **Rollback**: delete `src/components/filters/` directory
+
+#### Unit 3 Handoff Notes — for the orchestrator + Unit 4 executor
+
+The seven filter files plus the shared `option.ts` module form the
+"controlled inputs" layer that `DirectoryClient` (Unit 4) composes.
+Key contracts and decisions for Unit 4:
+
+- **URL SSOT preserved.** None of the seven filter components imports
+  `@/lib/filtering`, `useSearchParams`, or `URLSearchParams`. Every
+  control is a pure props-in / callback-out island. The parent
+  (`DirectoryClient`) owns the URL via `parseDirectoryUrl` +
+  `buildDirectoryUrl` + `router.replace(url, { scroll: false })`.
+
+- **Page reset is centralized in `<FilterPanel/>`.** Every
+  sub-control's `onChange` is wrapped by `FilterPanel` to add
+  `page: 1` (design §5). `DirectoryClient` does not need to know about
+  page reset — it just calls `buildDirectoryUrl(nextFilter, pathname)`
+  and `buildDirectoryUrl` already drops `page=1` from the serialized
+  URL.
+
+- **Country cascade is centralized in `<FilterPanel/>`.** Country
+  changes always clear `city` (spec "Visitor clears country selection
+  → city filter is also cleared"). The cascade lives in
+  `FilterPanel.handleCountryChange`, NOT in the country filter itself,
+  so the filter stays a pure "select a country" component. `DirectoryClient`
+  does not need to enforce the cascade.
+
+- **Coming-soon countries are enforced in `<CountryFilter/>`.** The
+  filter reads `COMING_SOON_COUNTRIES` from `@/lib/constants` and
+  forces `count=0` + `disabled=true` + `title="Próximamente"` on any
+  option whose value is in that array. The component does not trust
+  the parent's option counts for coming-soon values — defense in
+  depth (the URL parser drops them too).
+
+- **`<CitySelect/>` uses a sentinel value.** Native `<select>` cannot
+  represent `null` directly, so the component maps
+  `__all__` → `onChange(null)` and `value ?? __all__` for the DOM.
+  `DirectoryClient` always sees `string | null`, never the sentinel.
+
+- **`<SearchInput/>` debounce.** The component owns the
+  `useDebounce(value, 250)` + the draft state. The parent's
+  `onChange` callback fires only on the **debounced** value, never per
+  keystroke (spec "no filtering occurs between each keystroke"). The
+  parent's `onChange` should be wrapped in `useCallback` so the
+  debounce effect does not re-fire on every parent re-render.
+
+- **Responsive layout.** `<FilterPanel/>` uses a single `<details>`
+  element with the `<summary>` hidden via `md:hidden`. On mobile, the
+  user collapses/expands via the summary. On desktop, the panel is
+  `md:sticky md:top-20` and follows the visitor as they scroll.
+  A small `useEffect` forces `details.open = true` on viewport ≥ 768px
+  so a user who collapses the panel on mobile and resizes to desktop
+  still sees the filters. This is the only client-side state in the
+  panel aside from the form callbacks.
+
+- **`hasActiveFilters(filter)` helper.** Exported from
+  `@/components/filters/option.ts` (also re-exported from the barrel).
+  Used by the panel to decide whether to render the "Limpiar filtros"
+  button. `DirectoryClient` can use the same helper for its own
+  "Limpiar" affordance in the empty state, if desired.
+
+- **No new dependencies.** The filter family adds zero dependencies.
+  All primitives (`useDebounce`, `INDUSTRY_LABELS`, `COMING_SOON_COUNTRIES`,
+  `cn`) come from the Unit 1 surface.
+
+- **Manual E2E scenarios to spot-check in Unit 4** (carried over from
+  the cross-cutting checklist): CO active in country filter; BR/CL/AR/MX
+  disabled with tooltip and `0`; city-select disabled when country is
+  null; industry checkbox toggle adds/removes `industry=<slug>` in URL;
+  clearing country clears city; "Limpiar filtros" resets all fields;
+  search input debounces ~250ms; 375px viewport shows `<details>`
+  summary that toggles the filter list; ≥768px shows sticky aside.
 
 ---
 
@@ -175,6 +252,7 @@ observation (`sdd/phase-1-mvp/apply-progress`) for the full design rationale.
 
 ## Next Step
 
-Chain strategy is `stacked-to-main`. Proceed with `sdd-apply` for **Work Unit 3** (filter
-family + mobile `<details>` disclosure + coming-soon countries, PR 3/6) once this slice is
-merged.
+Chain strategy is `stacked-to-main`. Proceed with `sdd-apply` for **Work Unit 3B** (city, search,
+filter panel, and mobile disclosure), then Work Unit 4 (DirectoryClient island + homepage wiring)
+after both Unit 3 slices are merged. The Unit 3 filter family ships as the controlled-input layer
+that Unit 4's `DirectoryClient` composes.

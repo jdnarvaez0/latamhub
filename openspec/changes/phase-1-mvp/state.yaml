@@ -1,8 +1,8 @@
 change: phase-1-mvp
 project: latamhub
 root: C:\Users\ACER\OneDrive\Escritorio\JD\JUAN\SideProjects\startupLATAM\latamhub
-phase: apply-unit-2-complete
-last_updated: 2026-08-09T23:30:00Z
+phase: apply-unit-3a-complete
+last_updated: 2026-08-10T12:10:00Z
 
 artifact_store: hybrid        # OpenSpec files + Engram topics
 delivery_strategy: force-chained
@@ -18,9 +18,11 @@ artifacts:
   apply_progress:
     - obs-59                  # Work Unit 1 — infrastructure foundation (PR 1 / 6)
     - obs-59                  # Work Unit 2 — presentational components (PR 2 / 6) — merged into same apply-progress topic
+    - obs-59                  # Work Unit 3A — core filters (PR 3A / 7) — merged into same apply-progress topic
   verify_report:
     - obs-63                  # Work Unit 1 verify report
     - obs-75                  # Work Unit 2 verify report
+    - obs-81                  # Work Unit 3A verify report
   archive_report: false
 
 spec_domains:
@@ -56,27 +58,27 @@ gemini_gate_review:
       resolution: coming-soon moved to slice 3; mobile behaviour to slice 3; homepage metadata to slice 4; detail SEO to slice 5; slice 6 = SEO consistency + quality-gate closure (<=250 lines)
 
 current_pr_slice:
-  number: 2
-  of: 6
-  work_unit: 2
-  name: Presentational components
-  base: 533a25c           # Merge PR #1 (Unit 1) into main
-  branch: feat/phase-1-directory-row-grid-pagination
+  number: 3
+  of: 7
+  work_unit: 3A
+  name: Core directory filters
+  base: c48ac1e           # Merge PR #4 (Unit 2) into main — actually PR #4 in this repo's PR counter
+  branch: feat/phase-1-directory-filters
   delivery: stacked-to-main
   files:
-    - src/components/startup-row.tsx
-    - src/components/startup-grid.tsx
-    - src/components/pagination.tsx
-    - src/components/empty-state.tsx
+    - src/components/filters/option.ts
+    - src/components/filters/country-filter.tsx
+    - src/components/filters/industry-filter.tsx
+    - src/components/filters/stage-filter.tsx
+    - src/components/filters/modality-filter.tsx
     - openspec/changes/phase-1-mvp/tasks.md
     - openspec/changes/phase-1-mvp/state.yaml
-  defensive_fixes:
-    - src/components/startup-row.tsx: countryLabel now uses COUNTRY_LABELS[startup.country] ?? startup.country (matches industryLabel/stageLabel fallback pattern)
+  defensive_fixes: []
   verification:
     typecheck: pass
     lint: pass
     build: pass
-  verify_report: obs-75
+  verify_report: obs-81
   verdict: "PASS WITH WARNINGS"
   pushed: false
   pr_opened: false
@@ -84,14 +86,14 @@ current_pr_slice:
 untracked_planning_artifacts:
   description: |
     Proposal, exploration, specs, and design remain in the working tree untracked.
-    They will be committed in a later planning/artifact commit, not in PR 2.
+    They will be committed in a later planning/artifact commit, not in PR 3.
   files:
     - openspec/changes/phase-1-mvp/proposal.md
     - openspec/changes/phase-1-mvp/exploration.md
     - openspec/changes/phase-1-mvp/design.md
     - openspec/changes/phase-1-mvp/specs/
 
-next_recommended: sdd-apply — Unit 3 (filter family + mobile <details> + coming-soon countries, PR 3/6)
+next_recommended: sdd-apply — Unit 3B (city, search, panel, and mobile disclosure)
 
 notes:
   - State artifact bootstrapped by the sdd-design executor to unblock compaction recovery.
@@ -100,11 +102,11 @@ notes:
     (Engram obs #56 "Design gate found Phase 1 contract conflicts").'
   - 'Unit 1 transition: verify-report obs #63 flagged that ''tasks'', ''apply_progress'', and
     ''verify_report'' were not flipped in state.yaml after sdd-tasks and sdd-apply completed.
-    state.yaml now reflects the actual on-disk truth for both Unit 1 and Unit 2.'
+    state.yaml now reflects the actual on-disk truth for Unit 1, Unit 2, and Unit 3.'
   - 'chain_strategy locked to ''stacked-to-main'' by the user during the PR 1 packaging step;
-    tasks.md and state.yaml both carry the locked value as of the Unit 2 transition.'
-  - 'Unit 2 transition: tasks.md now shows Unit 2 tasks as [x] (preserved Unit 1 marks),
-    chain strategy updated from "pending" to "stacked-to-main", and a Unit 2 handoff note
+    tasks.md and state.yaml both carry the locked value as of the Unit 3 transition.'
+  - 'Unit 2 transition: tasks.md shows Unit 2 tasks as [x] (preserved Unit 1 marks);
+    chain strategy updated from "pending" to "stacked-to-main"; a Unit 2 handoff note
     documents the intentional <Pagination/> buildHref(page) prop and how it preserves the
     URL SSOT (parent DirectoryClient owns buildDirectoryUrl, the component renders real
     <Link replace scroll={false}> elements).'
@@ -112,11 +114,18 @@ notes:
     <StartupRow/> for countryLabel. A small defensive fix was applied: countryLabel now uses
     COUNTRY_LABELS[startup.country] ?? startup.country, matching the industryLabel and
     stageLabel fallback patterns.'
-  - 'Unit 2 work uncommitted at session end (all four component files were untracked at the
-    time of the fresh review). The current packaging step stages ONLY the four component
-    files + the two proof artifacts (tasks.md, state.yaml); proposal, exploration, design,
-    specs/, and config.yaml remain untracked and out of scope.'
+  - 'Unit 3A transition: tasks.md shows Unit 3A tasks 3.1–3.4 as [x] and leaves 3.5–3.8 pending (preserved Unit 1/2 marks).
+    A new "Unit 3 Handoff Notes" section documents the seven-filter contract: URL SSOT
+    preserved (no imports of @/lib/filtering / useSearchParams inside filters); page reset
+    centralized in FilterPanel (every onChange includes page: 1); country cascade (clears
+    city) centralized in FilterPanel; coming-soon enforcement lives in CountryFilter; city-select
+    uses __all__ sentinel for the native <select>; search-input debounces via useDebounce(250);
+    <FilterPanel> uses one <details> for both desktop sticky aside and mobile disclosure,
+     with a useEffect forcing open on >=768px. PR 3B owns the remaining city, search, panel,
+     mobile disclosure, and barrel-export files.'
   - PR 1 commit created on branch `feat/phase-1-directory-foundation`; merged into `main` at
     `533a25c` (obs #63).
-  - PR 2 commit in progress on branch `feat/phase-1-directory-row-grid-pagination`; no push,
-    no PR opened (per the packaging instructions).
+  - PR 2 commit (`ce30eb0`) on branch `feat/phase-1-directory-row-grid-pagination`;
+    merged into `main` at `c48ac1e` (PR #4).
+  - PR 3 work uncommitted on branch `feat/phase-1-directory-filters` at session end;
+    no push, no PR opened (per the packaging instructions).
