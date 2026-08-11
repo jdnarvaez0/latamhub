@@ -150,28 +150,30 @@ export function DirectoryClient({ startups }: DirectoryClientProps) {
   const showClearAction = isEmpty && hasActiveFilters(filter);
 
   return (
-    <section className="space-y-8">
+    <section className="flex flex-col gap-12 md:flex-row md:items-start">
       <FilterPanel
         filter={filter}
         options={options}
         onChange={goToFilter}
         onClearAll={handleClearAll}
-        className="w-full"
+        className="w-full md:w-64 md:shrink-0"
       />
-      <StartupGrid
-        pageRows={pageRows}
-        count={filteredRows.length}
-        emptyAction={
-          showClearAction ? (
-            <ClearFiltersAction onClick={handleClearAll} />
-          ) : undefined
-        }
-      />
-      <Pagination
-        currentPage={currentPage}
-        totalPages={total}
-        buildHref={buildPageHref}
-      />
+      <div className="min-w-0 flex-1 space-y-8">
+        <StartupGrid
+          pageRows={pageRows}
+          count={filteredRows.length}
+          emptyAction={
+            showClearAction ? (
+              <ClearFiltersAction onClick={handleClearAll} />
+            ) : undefined
+          }
+        />
+        <Pagination
+          currentPage={currentPage}
+          totalPages={total}
+          buildHref={buildPageHref}
+        />
+      </div>
     </section>
   );
 }
