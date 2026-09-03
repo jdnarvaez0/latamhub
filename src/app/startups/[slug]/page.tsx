@@ -11,12 +11,20 @@
  * route-local `not-found.tsx` with `robots: noindex`.
  *
  * `generateMetadata` exports the full SEO block for approved startups
- * (title, description, absolute canonical, OpenGraph `article` with
- * logo image when available) and a safe noindex fallback for the
- * not-found path. Next.js's auto-injected `<meta name="robots"
- * content="noindex">` for 404 renders is intentionally redundant with
- * the explicit `robots` block so the metadata merge contract stays
- * predictable when the layout adds its own `robots` later.
+ * (title, description, canonical `/startups/[slug]` resolved against
+ * the root layout's `metadataBase`, OpenGraph `article` with logo
+ * image when available) and a safe noindex fallback for the not-found
+ * path. Next.js's auto-injected `<meta name="robots" content="noindex">`
+ * for 404 renders is intentionally redundant with the explicit
+ * `robots` block so the metadata merge contract stays predictable
+ * when the layout adds its own `robots` later.
+ *
+ * Canonical and `openGraph.url` use **relative paths** (Unit 6 audit).
+ * The root layout declares `metadataBase = https://latamhub.com` so
+ * Next.js resolves `/startups/${slug}` → `https://latamhub.com/startups/${slug}`
+ * at metadata-emit time. This keeps the site origin in a single file
+ * (the layout) and removes the duplicated constant + helper that
+ * previously lived here.
  */
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -32,7 +40,6 @@ import {
 import { getStartupBySlug } from "@/lib/queries";
 import type { Startup } from "@/lib/types";
 
-const SITE_ORIGIN = "https://latamhub.com";
 const NOT_PROVIDED = "No proporcionado";
 
 /** 1–2 char monogram letter from a startup name; never throws. */
@@ -42,9 +49,9 @@ function monogramLetter(name: string): string {
   return trimmed.slice(0, 2).toUpperCase();
 }
 
-/** Canonical absolute URL for a startup detail page. */
-function canonicalUrl(slug: string): string {
-  return `${SITE_ORIGIN}/startups/${slug}`;
+/** Relative canonical path for a startup detail page. */
+function canonicalPath(slug: string): string {
+  return `/startups/${slug}`;
 }
 
 /** `${name} — ${industry} · Col/Labs` page title. */
@@ -83,22 +90,29 @@ export async function generateMetadata({
 
   const title = detailTitle(startup);
   const description = descriptionFor(startup);
-  const url = canonicalUrl(startup.slug);
+  // Relative path — resolved against the root layout's `metadataBase`
+  // (`https://latamhub.com`) by Next.js at metadata-emit time. See the
+  // file docblock for the Unit 6 audit rationale.
+  const canonical = canonicalPath(startup.slug);
 
   return {
     title,
     description,
-    alternates: { canonical: url },
+    alternates: { canonical },
     robots: { index: true, follow: true },
     openGraph: {
       title,
       description,
-      url,
+      url: canonical,
       siteName: "Col/Labs",
       locale: "es_CO",
       type: "article",
       // `"article"` requires an image; emit only when the curation team
-      // has set one so we never emit a broken `<meta>` tag.
+      // has set one so we never emit a broken `<meta>` tag. `logoUrl`
+      // is treated as already-absolute (the curation team uploads it
+      // to the public asset bucket), so we DO NOT resolve it through
+      // `metadataBase` — `openGraph.images` requires an absolute URL,
+      // and the value stored on the row already satisfies that.
       ...(startup.logoUrl
         ? {
             images: [
