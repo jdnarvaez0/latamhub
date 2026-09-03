@@ -1,8 +1,8 @@
 change: phase-1-mvp
 project: latamhub
 root: C:\Users\ACER\OneDrive\Escritorio\JD\JUAN\SideProjects\startupLATAM\latamhub
-phase: apply-unit-3a-complete
-last_updated: 2026-08-10T12:10:00Z
+phase: apply-unit-6-complete
+last_updated: 2026-09-03T19:30:00Z
 
 artifact_store: hybrid        # OpenSpec files + Engram topics
 delivery_strategy: force-chained
@@ -16,13 +16,19 @@ artifacts:
   design: true                # corrected in this pass (gate review)
   tasks: true
   apply_progress:
-    - obs-59                  # Work Unit 1 — infrastructure foundation (PR 1 / 6)
-    - obs-59                  # Work Unit 2 — presentational components (PR 2 / 6) — merged into same apply-progress topic
+    - obs-59                  # Work Unit 1 — infrastructure foundation (PR 1 / 7)
+    - obs-59                  # Work Unit 2 — presentational components (PR 2 / 7) — merged into same apply-progress topic
     - obs-59                  # Work Unit 3A — core filters (PR 3A / 7) — merged into same apply-progress topic
+    - obs-59                  # Work Unit 3B — city, search, panel, mobile disclosure (PR 4 / 7) — merged into same apply-progress topic
+    - obs-97                  # Work Unit 4 — DirectoryClient island + homepage (PR 5 / 7) — committed at 0526851
+    - pending                 # Work Unit 5 — startup detail page + not-found + generateMetadata (this batch; persisted to Engram in the sdd-apply return envelope)
   verify_report:
     - obs-63                  # Work Unit 1 verify report
     - obs-75                  # Work Unit 2 verify report
     - obs-81                  # Work Unit 3A verify report
+    - obs-66fe284b08653d1d    # Work Unit 3B verify report (PASS WITH WARNINGS)
+    - pending                 # Work Unit 4 verify report (sdd-verify will lift to Engram)
+    - pending                 # Work Unit 5 verify report (sdd-verify will lift to Engram)
   archive_report: false
 
 spec_domains:
@@ -58,42 +64,62 @@ gemini_gate_review:
       resolution: coming-soon moved to slice 3; mobile behaviour to slice 3; homepage metadata to slice 4; detail SEO to slice 5; slice 6 = SEO consistency + quality-gate closure (<=250 lines)
 
 current_pr_slice:
-  number: 3
+  number: 7
   of: 7
-  work_unit: 3A
-  name: Core directory filters
-  base: c48ac1e           # Merge PR #4 (Unit 2) into main — actually PR #4 in this repo's PR counter
-  branch: feat/phase-1-directory-filters
+  work_unit: 6
+  name: SEO canonical/OG/robots audit + metadataBase centralisation
+  base: 6201d62   # origin/main after PR #14 (Unit 5) merged
+  branch: fix/directory-aside-layout
   delivery: stacked-to-main
   files:
-    - src/components/filters/option.ts
-    - src/components/filters/country-filter.tsx
-    - src/components/filters/industry-filter.tsx
-    - src/components/filters/stage-filter.tsx
-    - src/components/filters/modality-filter.tsx
+    - src/app/layout.tsx
+    - src/app/page.tsx
+    - src/app/startups/[slug]/page.tsx
     - openspec/changes/phase-1-mvp/tasks.md
     - openspec/changes/phase-1-mvp/state.yaml
   defensive_fixes: []
   verification:
-    typecheck: pass
-    lint: pass
-    build: pass
-  verify_report: obs-81
-  verdict: "PASS WITH WARNINGS"
-  pushed: false
-  pr_opened: false
+    typecheck: pass        # 0 errors
+    lint: pass             # 0 errors, 0 warnings
+    build: pass            # Next 16.3.0 (Turbopack), 4/4 routes generated
+    test: pass             # 80/80 vitest tests green
+  verify_report: verify-report-unit-6.md   # PASS — no CRITICAL or WARNING
+  verdict: "PASS — feature-complete, all 28 tasks done, all spec scenarios compliant"
+  pushed: true   # fd67e6f + 93e5348 pushed at 2026-09-03
+  pr_opened: true
+  pr_url: https://github.com/jdnarvaez0/latamhub/pull/16
+  pr_number: 16
+  pr_line_count_note: |
+    The user-requested test file alone (directory-options.test.ts,
+    23 tests, 373 lines) makes a strict 800-line implementation-only
+    PR impossible without dropping required coverage. Total
+    implementation diff is ~982 lines (4 new files + page.tsx
+    replacement). The 800-line budget is documented in the design as
+    "force-chained" guidance; the user said "where practical" in this
+    batch. Unit 4 stays a single PR because the five files form one
+    tightly-coupled deliverable (no clean way to split the
+    option/count computation from the island that consumes it). The
+    chained-PR strategy is preserved for Units 5 and 6.
 
 untracked_planning_artifacts:
   description: |
-    Proposal, exploration, specs, and design remain in the working tree untracked.
-    They will be committed in a later planning/artifact commit, not in PR 3.
+    Proposal, exploration, specs, design, verify-report-unit-3a,
+    verify-report-unit-3b, and config.yaml remain in the working
+    tree untracked. They will be committed in a later planning/
+    artifact commit, not in PR 4.
+    preserve on this branch until a planning commit can package them together.
   files:
     - openspec/changes/phase-1-mvp/proposal.md
     - openspec/changes/phase-1-mvp/exploration.md
     - openspec/changes/phase-1-mvp/design.md
     - openspec/changes/phase-1-mvp/specs/
+    - openspec/changes/phase-1-mvp/verify-report-unit-3a.md
+    - openspec/changes/phase-1-mvp/verify-report-unit-3b.md
+    - openspec/config.yaml
 
-next_recommended: sdd-apply — Unit 3B (city, search, panel, and mobile disclosure)
+next_recommended: |
+  1. Merge PR #16 (fix/directory-aside-layout → main)
+  2. sdd-archive — phase-1-mvp (close the change, persist final state)
 
 notes:
   - State artifact bootstrapped by the sdd-design executor to unblock compaction recovery.
@@ -102,7 +128,7 @@ notes:
     (Engram obs #56 "Design gate found Phase 1 contract conflicts").'
   - 'Unit 1 transition: verify-report obs #63 flagged that ''tasks'', ''apply_progress'', and
     ''verify_report'' were not flipped in state.yaml after sdd-tasks and sdd-apply completed.
-    state.yaml now reflects the actual on-disk truth for Unit 1, Unit 2, and Unit 3.'
+    state.yaml now reflects the actual on-disk truth for Units 1, 2, 3A, 3B, and 4.'
   - 'chain_strategy locked to ''stacked-to-main'' by the user during the PR 1 packaging step;
     tasks.md and state.yaml both carry the locked value as of the Unit 3 transition.'
   - 'Unit 2 transition: tasks.md shows Unit 2 tasks as [x] (preserved Unit 1 marks);
@@ -114,18 +140,48 @@ notes:
     <StartupRow/> for countryLabel. A small defensive fix was applied: countryLabel now uses
     COUNTRY_LABELS[startup.country] ?? startup.country, matching the industryLabel and
     stageLabel fallback patterns.'
-  - 'Unit 3A transition: tasks.md shows Unit 3A tasks 3.1–3.4 as [x] and leaves 3.5–3.8 pending (preserved Unit 1/2 marks).
-    A new "Unit 3 Handoff Notes" section documents the seven-filter contract: URL SSOT
-    preserved (no imports of @/lib/filtering / useSearchParams inside filters); page reset
-    centralized in FilterPanel (every onChange includes page: 1); country cascade (clears
-    city) centralized in FilterPanel; coming-soon enforcement lives in CountryFilter; city-select
-    uses __all__ sentinel for the native <select>; search-input debounces via useDebounce(250);
-    <FilterPanel> uses one <details> for both desktop sticky aside and mobile disclosure,
-     with a useEffect forcing open on >=768px. PR 3B owns the remaining city, search, panel,
-     mobile disclosure, and barrel-export files.'
+  - 'Unit 3A transition (PR 3A = GitHub PR #6): tasks.md shows Unit 3A tasks 3.1–3.4 as [x]
+    and leaves 3.5–3.8 pending (preserved Unit 1/2 marks). PR 3A merged into main at `c764d08`.
+    Verified by `verify-report-unit-3a.md` on the filesystem (PASS WITH WARNINGS — cosmetic
+    Engram/tasks next-step issues resolved below in the Unit 3B transition).'
+  - 'Unit 3B transition (PR 3B = GitHub PR 4/7 in our chained-PLAN model): tasks.md shows
+    3.5–3.8 as [x] with a new "Unit 3B Handoff Note" appended after the Unit 3A note.
+    The four untracked files for Unit 3B (city-select, search-input, filter-panel, index)
+    were promoted from uncommitted-scratch into the new branch
+    `feat/phase-1-directory-filters-panel` (created from origin/main at `2858532`,
+    which already includes the Vitest foundation merge). PR 3B merged into main at `6c0225d`
+    (GitHub PR #10). All four automated gates green: test 57/57, typecheck 0 errors,
+    lint 0 errors, build compiled successfully.'
+  - 'The Unit 3A verify-report warning 3 ("tasks.md Next Step incorrectly targets Unit 4")
+    has been resolved in the Unit 3B and Unit 4 apply passes: the "Next Step" now correctly
+    points at `sdd-apply — Unit 4` after PR 3B merged, and at `sdd-apply — Unit 5` after
+    PR 4 merges.'
   - PR 1 commit created on branch `feat/phase-1-directory-foundation`; merged into `main` at
     `533a25c` (obs #63).
   - PR 2 commit (`ce30eb0`) on branch `feat/phase-1-directory-row-grid-pagination`;
     merged into `main` at `c48ac1e` (PR #4).
-  - PR 3 work uncommitted on branch `feat/phase-1-directory-filters` at session end;
-    no push, no PR opened (per the packaging instructions).
+  - PR 3A commit (`43b2f46`) on branch `feat/phase-1-directory-filters`;
+    merged into `main` at `c764d08` (PR #6), followed by chore state reconciliation
+    (`78d7dd5`).
+  - PR 3B commit (`22c1125`) on branch `feat/phase-1-directory-filters-panel`;
+    merged into `main` at `6c0225d` (PR #10).
+  - Testing foundation commit (`332d349`) on branch `feat/testing-vitest-foundation`;
+    merged into `main` at `2858532` (PR #8). vitest 4.1.10, `bun run test` is a
+    required gate from Unit 3B onward.
+  - PR 4 work uncommitted on branch `feat/phase-1-directory-client` at session end;
+    no push, no PR opened (per the apply-phase conventions).
+  - 'Unit 4 transition (this batch): five implementation files added / replaced on
+    `feat/phase-1-directory-client`. The pure option/count module
+    (`directory-options.ts`) is tested by 23 Vitest cases
+    (`directory-options.test.ts`) without React Testing Library or jsdom
+    (per the user''s "pure logic tests + standard gates" choice). The
+    `DirectoryClient` island is the only client island in the chain
+    that calls `useSearchParams()`; it is wrapped in `<Suspense>` in
+    the Server Component (`app/page.tsx`) per Next 16''s prerender
+    contract. The `DirectoryErrorState` island calls
+    `router.refresh()` on retry, which re-runs the Server Component
+    and re-invokes `getApprovedStartups()`. The homepage exports
+    explicit `Metadata` (title, description, `alternates.canonical`,
+    `openGraph` with `type=website` and `locale=es_CO`). All four
+    automated gates green: test 80/80, typecheck 0, lint 0,
+    build compiled successfully.'

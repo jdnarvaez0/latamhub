@@ -18,7 +18,9 @@
  *        row grid + the numbered pagination (Units 2, 3A, 3B, 4).
  *  3. Exports explicit page-level `metadata` so the live directory's
  *     SEO is independent of the root layout (design §13, decision §13):
- *      - `alternates.canonical` → `https://latamhub.com/`
+ *      - `alternates.canonical` → `/` (resolved against the root
+ *        layout's `metadataBase` = `https://latamhub.com`).
+ *      - `openGraph.url` → `/` (same resolution).
  *      - `openGraph.type` → `"website"`, `locale` → `"es_CO"`.
  *
  * ## Suspense around `useSearchParams`
@@ -44,6 +46,13 @@
  *    declares `es_CO`, but we re-declare to make the homepage's
  *    `og:type=website` explicit).
  *
+ * Canonical and `openGraph.url` use **relative paths** (Unit 6 audit).
+ * The root layout declares `metadataBase = https://latamhub.com` so
+ * Next.js resolves `/` → `https://latamhub.com/` at metadata-emit
+ * time. This keeps the site origin in a single file (the layout)
+ * and removes a duplicated constant that previously lived in both
+ * `app/page.tsx` and `app/startups/[slug]/page.tsx`.
+ *
  * The metadata export is **Server Component only** — Next.js refuses
  * it in Client Components, which is why the page is a Server
  * Component and the directory state lives in the client island.
@@ -55,13 +64,6 @@ import { DirectoryClient } from "@/components/directory-client";
 import { DirectoryErrorState } from "@/components/directory-error-state";
 import { EmptyState } from "@/components/empty-state";
 import { getApprovedStartups } from "@/lib/queries";
-
-/**
- * Canonical site origin used by the homepage metadata. Centralised as
- * a constant so the SEO sweep (Unit 6) can audit every absolute URL
- * against the same value.
- */
-const SITE_ORIGIN = "https://latamhub.com";
 
 /**
  * Homepage title — the page-level override of the root layout's
@@ -83,17 +85,20 @@ const HOMEPAGE_DESCRIPTION =
  * `generateMetadata`) because the homepage does not depend on any
  * request-time data — the directory data is fetched inside the page
  * body, not by the metadata resolver.
+ *
+ * Relative paths in `alternates.canonical` and `openGraph.url` are
+ * resolved against the root layout's `metadataBase` (Unit 6 audit).
  */
 export const metadata: Metadata = {
   title: HOMEPAGE_TITLE,
   description: HOMEPAGE_DESCRIPTION,
   alternates: {
-    canonical: `${SITE_ORIGIN}/`,
+    canonical: "/",
   },
   openGraph: {
     title: HOMEPAGE_TITLE,
     description: HOMEPAGE_DESCRIPTION,
-    url: `${SITE_ORIGIN}/`,
+    url: "/",
     siteName: "Col/Labs",
     type: "website",
     locale: "es_CO",

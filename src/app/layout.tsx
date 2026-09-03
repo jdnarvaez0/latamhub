@@ -25,7 +25,23 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+/**
+ * Single source of truth for the absolute site origin. The root layout
+ * declares `metadataBase` so every URL-based metadata field across the
+ * app (`alternates.canonical`, `openGraph.url`, `openGraph.images`,
+ * `twitter.images`, ...) can use a relative path that Next.js resolves
+ * against this URL at build/request time.
+ *
+ * Per the Next.js 16 metadata docs (`generateMetadata` → `metadataBase`):
+ * the root layout is the recommended home for `metadataBase` because
+ * "URL-based `metadata` fields defined in the current route segment and
+ * below" inherit it. Adding it here lets every page file drop its own
+ * `SITE_ORIGIN` constant + `canonicalUrl` helper.
+ */
+const SITE_ORIGIN = "https://latamhub.com";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_ORIGIN),
   title: "Col/Labs — Directorio de startups de Latinoamérica",
   description:
     "Directorio del ecosistema startup de LatAm: empresas, industrias, etapas y vacantes abiertas. Empezando por Colombia.",
@@ -33,7 +49,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Col/Labs — Directorio de startups de Latinoamérica",
     description:
-      "Directorio del ecosistema startup de LatAm: empresas, industrias, etapas y vacantes abiertas.",
+      "Directorio del ecosistema startup de LatAm: empresas, industrias, etapas y vacantes abiertas. Empezando por Colombia.",
     type: "website",
     locale: "es_CO",
   },
@@ -41,7 +57,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Col/Labs — Directorio de startups de Latinoamérica",
     description:
-      "Directorio del ecosistema startup de LatAm: empresas, industrias, etapas y vacantes abiertas.",
+      "Directorio del ecosistema startup de LatAm: empresas, industrias, etapas y vacantes abiertas. Empezando por Colombia.",
   },
 };
 
