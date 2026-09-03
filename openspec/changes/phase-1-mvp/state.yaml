@@ -1,8 +1,8 @@
 change: phase-1-mvp
 project: latamhub
 root: C:\Users\ACER\OneDrive\Escritorio\JD\JUAN\SideProjects\startupLATAM\latamhub
-phase: apply-unit-5-complete
-last_updated: 2026-08-10T21:05:00Z
+phase: apply-unit-6-complete
+last_updated: 2026-09-03T19:30:00Z
 
 artifact_store: hybrid        # OpenSpec files + Engram topics
 delivery_strategy: force-chained
@@ -64,28 +64,31 @@ gemini_gate_review:
       resolution: coming-soon moved to slice 3; mobile behaviour to slice 3; homepage metadata to slice 4; detail SEO to slice 5; slice 6 = SEO consistency + quality-gate closure (<=250 lines)
 
 current_pr_slice:
-  number: 6
+  number: 7
   of: 7
-  work_unit: 5
-  name: Startup detail page + SEO + not-found
-  base: 98aee994a063fb4ca4bfb25eddf909a773f96577   # origin/main after PR #12 (Unit 4) merged
-  branch: feat/phase-1-startup-detail
+  work_unit: 6
+  name: SEO canonical/OG/robots audit + metadataBase centralisation
+  base: 6201d62   # origin/main after PR #14 (Unit 5) merged
+  branch: fix/directory-aside-layout
   delivery: stacked-to-main
   files:
+    - src/app/layout.tsx
+    - src/app/page.tsx
     - src/app/startups/[slug]/page.tsx
-    - src/app/startups/[slug]/not-found.tsx
     - openspec/changes/phase-1-mvp/tasks.md
     - openspec/changes/phase-1-mvp/state.yaml
   defensive_fixes: []
   verification:
     typecheck: pass        # 0 errors
     lint: pass             # 0 errors, 0 warnings
-    build: pass            # Next 16.3.0 (Turbopack), 4/4 routes generated; /startups/[slug] listed as `ƒ` (dynamic, server-rendered on demand)
-    test: pass             # 80/80 vitest tests green (no new tests in Unit 5; required pure-logic-only test surface stays honest)
-  verify_report: pending  # sdd-verify — Unit 5 will produce verify-report-unit-5.md on the filesystem
-  verdict: "READY — implementation matches design and spec"
-  pushed: false
-  pr_opened: false
+    build: pass            # Next 16.3.0 (Turbopack), 4/4 routes generated
+    test: pass             # 80/80 vitest tests green
+  verify_report: verify-report-unit-6.md   # PASS — no CRITICAL or WARNING
+  verdict: "PASS — feature-complete, all 28 tasks done, all spec scenarios compliant"
+  pushed: true   # fd67e6f + 93e5348 pushed at 2026-09-03
+  pr_opened: true
+  pr_url: https://github.com/jdnarvaez0/latamhub/pull/16
+  pr_number: 16
   pr_line_count_note: |
     The user-requested test file alone (directory-options.test.ts,
     23 tests, 373 lines) makes a strict 800-line implementation-only
@@ -115,10 +118,8 @@ untracked_planning_artifacts:
     - openspec/config.yaml
 
 next_recommended: |
-  1. Commit planning artifacts (tasks.md + state.yaml + planning docs) as chore(sdd): package unit 4 planning artifacts
-  2. Push branch, open PR #5/7 against main
-  3. After PR merges: sdd-verify — Unit 4 (lifts to filesystem + Engram)
-  4. After verify: sdd-apply — Unit 5 (detail page + not-found + generateMetadata)
+  1. Merge PR #16 (fix/directory-aside-layout → main)
+  2. sdd-archive — phase-1-mvp (close the change, persist final state)
 
 notes:
   - State artifact bootstrapped by the sdd-design executor to unblock compaction recovery.
