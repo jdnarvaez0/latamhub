@@ -1,0 +1,33 @@
+schema: spec-driven
+
+context: |
+  Next.js 16 (App Router, Turbopack) + React 19 + TypeScript strict + TailwindCSS v4 + shadcn/ui (new-york/slate) + Supabase SSR + Bun + Vercel.
+  Architecture: server components by default, client islands for interactivity, Supabase server/client split, path alias @/*.
+  Testing: no test runner configured; strict TDD is disabled until tests are added.
+  Style: ESLint flat config (eslint-config-next), typecheck via `tsc --noEmit`.
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Confirm chained-PR strategy when forecast exceeds 800 changed lines
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with rationale
+  tasks:
+    - Group by phase, use hierarchical numbering
+    - Keep tasks completable in one session
+    - Enforce 800-line review budget; recommend chained PRs when forecast exceeds budget
+  apply:
+    follow_existing_code_patterns: true
+    tdd: false
+    test_command: ""
+  verify:
+    test_command: ""
+    build_command: "bun run build"
+    typecheck_command: "bun run typecheck"
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas
