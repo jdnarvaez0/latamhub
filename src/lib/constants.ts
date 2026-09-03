@@ -61,16 +61,12 @@ export const INDUSTRY_LABELS: Record<string, string> = {
 export const INDUSTRY_SLUGS: readonly string[] = Object.keys(INDUSTRY_LABELS);
 
 /**
- * Country codes that are visible in the directory but disabled in the
- * Phase 1 country filter (no approved startups yet). The filter UI renders
- * them with a "Próximamente" tooltip and `count: 0`; the URL parser
- * silently drops them.
+ * Country codes that are coming soon. Empty now that all 5 LATAM countries
+ * have live approved startups.
  */
-export const COMING_SOON_COUNTRIES: ReadonlyArray<Country> = ["BR", "CL", "AR", "MX"];
+export const COMING_SOON_COUNTRIES: ReadonlyArray<Country> = [];
 
 /**
- * The single country with live data in Phase 1. Everything else is coming
- * soon. Kept as a derived constant (not a free boolean) so the rest of the
- * directory code can ask "is this a live country?" without hard-coding CO.
+ * Countries with live data in the directory.
  */
-export const LIVE_COUNTRIES: ReadonlyArray<Country> = ["CO"];
+export const LIVE_COUNTRIES: ReadonlyArray<Country> = ["CO", "BR", "CL", "AR", "MX"];

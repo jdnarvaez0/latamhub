@@ -10,7 +10,14 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify-seed": "bun scripts/verify-seed.ts"
+    "verify-seed": "bun scripts/verify-seed.ts",
+    "ingest": "bun scripts/ingest-startups.ts",
+    "ingest:dry": "bun scripts/ingest-startups.ts --dry-run",
+    "ingest:yc": "bun scripts/ingest-yc.ts",
+    "ingest:yc:co": "bun scripts/ingest-yc.ts --country CO",
+    "ingest:yc:dry": "bun scripts/ingest-yc.ts --dry-run --country CO",
+    "ingest:ar": "bun scripts/ingest-startups-ar.ts",
+    "ingest:ar:dry": "bun scripts/ingest-startups-ar.ts --dry-run"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

@@ -169,7 +169,12 @@ export default async function StartupDetailPage({
 
         <header className="border border-border bg-surface p-6 sm:p-8">
           <div className="flex flex-col gap-6 md:flex-row md:items-start">
-            <Monogram letter={monogramLetter(startup.name)} size="lg" />
+            <Monogram
+              letter={monogramLetter(startup.name)}
+              logoUrl={startup.logoUrl}
+              alt={`${startup.name} logo`}
+              size="lg"
+            />
 
             <div className="min-w-0 flex-1">
               <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">

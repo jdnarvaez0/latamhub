@@ -132,7 +132,12 @@ export function StartupRow({ startup, index = 0, className }: StartupRowProps) {
       style={{ animationDelay }}
     >
       <div className="flex flex-col gap-6 md:flex-row md:items-start">
-        <Monogram letter={monogramLetter(startup.name)} size="md" />
+        <Monogram
+          letter={monogramLetter(startup.name)}
+          logoUrl={startup.logoUrl}
+          alt={`${startup.name} logo`}
+          size="md"
+        />
 
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-start sm:gap-4">
