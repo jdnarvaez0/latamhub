@@ -1,0 +1,115 @@
+name: Data Ingestion
+
+on:
+  # Weekly cron — every Sunday at 03:00 UTC (midnight Colombian time)
+  schedule:
+    - cron: "0 3 * * 0"
+
+  # Allow manual trigger from the Actions tab with optional controls
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (no writes to DB)"
+        required: false
+        default: "false"
+        type: boolean
+      scripts:
+        description: "Which scripts to run"
+        required: false
+        default: "all"
+        type: choice
+        options:
+          - all
+          - ingest-startups
+          - ingest-yc
+          - ingest-ar
+
+env:
+  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+jobs:
+  ingest:
+    name: Run ingestion scripts
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.14"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # ── ingest-startups.ts (ATS: Greenhouse / Lever / Workable / Ashby) ──────
+      - name: "[ingest-startups] Sync startup jobs from ATS APIs"
+        if: |
+          (github.event_name == 'schedule') ||
+          (github.event.inputs.scripts == 'all') ||
+          (github.event.inputs.scripts == 'ingest-startups')
+        run: |
+          FLAGS=""
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            FLAGS="--dry-run"
+          fi
+          bun run scripts/ingest-startups.ts $FLAGS
+        continue-on-error: true  # let other scripts run even if this one fails
+        id: ingest_startups
+
+      # ── ingest-yc.ts (YC OSS API — all LATAM active companies) ──────────────
+      - name: "[ingest-yc] Sync YC LATAM companies"
+        if: |
+          (github.event_name == 'schedule') ||
+          (github.event.inputs.scripts == 'all') ||
+          (github.event.inputs.scripts == 'ingest-yc')
+        run: |
+          FLAGS=""
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            FLAGS="--dry-run"
+          fi
+          bun run scripts/ingest-yc.ts $FLAGS
+        continue-on-error: true
+        id: ingest_yc
+
+      # ── ingest-startups-ar.ts (Startups Argentina directory) ─────────────────
+      - name: "[ingest-ar] Sync Startups Argentina directory"
+        if: |
+          (github.event_name == 'schedule') ||
+          (github.event.inputs.scripts == 'all') ||
+          (github.event.inputs.scripts == 'ingest-ar')
+        run: |
+          FLAGS=""
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            FLAGS="--dry-run"
+          fi
+          bun run scripts/ingest-startups-ar.ts $FLAGS
+        continue-on-error: true
+        id: ingest_ar
+
+      # ── Final status check — fail the job if any script failed ───────────────
+      - name: Check overall result
+        if: always()
+        run: |
+          FAILED=0
+
+          if [ "${{ steps.ingest_startups.outcome }}" = "failure" ]; then
+            echo "::error::ingest-startups failed"
+            FAILED=1
+          fi
+
+          if [ "${{ steps.ingest_yc.outcome }}" = "failure" ]; then
+            echo "::error::ingest-yc failed"
+            FAILED=1
+          fi
+
+          if [ "${{ steps.ingest_ar.outcome }}" = "failure" ]; then
+            echo "::error::ingest-ar failed"
+            FAILED=1
+          fi
+
+          exit $FAILED
