@@ -1,0 +1,23 @@
+change: phase-2-jobs
+project: latamhub
+root: C:\Users\ACER\OneDrive\Escritorio\JD\JUAN\SideProjects\startupLATAM\latamhub
+phase: planning-complete
+last_updated: 2026-09-04T11:55:00Z
+
+artifact_store: openspec
+delivery_strategy: single-pr
+review_budget: 800
+
+artifacts:
+  proposal: true
+  specs: true
+  tasks: true
+  apply_progress: []
+  verify_report: []
+
+spec_domains:
+  - jobs-directory
+  - jobs-filters
+
+next_recommended: |
+  sdd-apply — Unit 1 (Data Access & Pure Logic)

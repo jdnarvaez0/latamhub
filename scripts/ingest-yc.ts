@@ -293,7 +293,7 @@ async function main() {
   console.log(`   Loaded ${allCompanies.length} total YC companies`);
 
   // Filter: active LATAM companies
-  let latam = allCompanies.filter(
+  const latam = allCompanies.filter(
     (c) => c.status === "Active" && isLatam(c)
   );
 

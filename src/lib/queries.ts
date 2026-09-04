@@ -20,7 +20,7 @@
  * agree on the future shape without paying the build cost today.
  */
 import { createClient } from "@/lib/supabase/server";
-import type { Job, Startup } from "@/lib/types";
+import type { Job, JobWithStartup, Startup } from "@/lib/types";
 
 /**
  * The shape returned by `getApprovedStartups`. The discriminated union
@@ -330,6 +330,131 @@ export async function getStartupBySlug(slug: string): Promise<Startup | null> {
 }
 
 // ---------------------------------------------------------------------------
+// Jobs directory query (Phase 2).
+// ---------------------------------------------------------------------------
+
+/**
+ * Raw Supabase row for the jobs × startups join. Snake_case as it comes
+ * from the DB; never exposed past the mapper.
+ */
+interface ActiveJobRow {
+  id: string;
+  startup_id: string;
+  title: string;
+  area: string | null;
+  location: string | null;
+  modality: string;
+  salary_range: string | null;
+  apply_url: string;
+  status: string;
+  created_at: string;
+  startups: {
+    name: string;
+    slug: string;
+    logo_url: string | null;
+    country: string;
+    city: string | null;
+    status: string;
+  } | null;
+}
+
+/**
+ * The shape returned by `getActiveJobs`. Discriminated union so callers
+ * branch on `result.ok` instead of catching.
+ */
+export type JobsQuery =
+  | { ok: true; jobs: JobWithStartup[] }
+  | { ok: false; error: string };
+
+/**
+ * Map a raw `ActiveJobRow` (jobs ⋈ startups) to the camelCase
+ * `JobWithStartup` type. Rows whose parent startup is missing or not
+ * approved are silently dropped by the caller.
+ */
+function mapActiveJob(row: ActiveJobRow): JobWithStartup | null {
+  const s = row.startups;
+  if (!s || s.status !== "approved") return null;
+  return {
+    id: row.id,
+    startupId: row.startup_id,
+    title: row.title,
+    area: row.area,
+    location: row.location,
+    modality: normalizeModality(row.modality),
+    salaryRange: row.salary_range,
+    applyUrl: row.apply_url,
+    startupName: s.name,
+    startupSlug: s.slug,
+    startupLogoUrl: s.logo_url,
+    startupCountry: normalizeCountry(s.country),
+    startupCity: s.city,
+  };
+}
+
+/**
+ * Fetch all active job vacancies with the parent startup metadata needed
+ * to render the `/jobs` listing page. The query enforces:
+ *   - `jobs.status = 'active'`
+ *   - parent `startups.status = 'approved'` (via the mapper guard)
+ *
+ * Jobs are ordered by creation date (newest first) so new openings
+ * float to the top without any secondary sort.
+ */
+export async function getActiveJobs(): Promise<JobsQuery> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("jobs")
+      .select(
+        `
+          id,
+          startup_id,
+          title,
+          area,
+          location,
+          modality,
+          salary_range,
+          apply_url,
+          status,
+          created_at,
+          startups:startup_id (
+            name,
+            slug,
+            logo_url,
+            country,
+            city,
+            status
+          )
+        `
+      )
+      .eq("status", "active")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      return {
+        ok: false,
+        error:
+          "No pudimos cargar las vacantes en este momento. Inténtalo de nuevo en unos segundos.",
+      };
+    }
+
+    const rows = (data ?? []) as unknown as ActiveJobRow[];
+    const jobs: JobWithStartup[] = [];
+    for (const row of rows) {
+      const mapped = mapActiveJob(row);
+      if (mapped) jobs.push(mapped);
+    }
+    return { ok: true, jobs };
+  } catch {
+    return {
+      ok: false,
+      error:
+        "No pudimos cargar las vacantes en este momento. Inténtalo de nuevo en unos segundos.",
+    };
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Future-threshold signatures (Phase 4+).
 //
 // The design reserves these for the >500-row threshold described in
@@ -373,3 +498,4 @@ export function searchApprovedStartups(
       "in-memory filtering."
   );
 }
+

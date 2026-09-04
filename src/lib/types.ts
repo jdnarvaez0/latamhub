@@ -57,3 +57,16 @@ export interface Job {
   salaryRange: string | null;
   applyUrl: string;
 }
+
+/**
+ * A job vacancy enriched with the minimal startup metadata needed to
+ * render a job row in the /jobs directory without a second round-trip.
+ * Produced by `getActiveJobs()` in `lib/queries.ts`.
+ */
+export interface JobWithStartup extends Job {
+  startupName: string;
+  startupSlug: string;
+  startupLogoUrl: string | null;
+  startupCountry: Country;
+  startupCity: string | null;
+}
