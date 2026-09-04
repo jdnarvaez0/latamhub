@@ -78,12 +78,34 @@ export function Pagination({
   const hasPrev = currentPage > 1;
   const hasNext = currentPage < totalPages;
 
-  // Pre-compute the page list once. For the Phase-1 seed dataset
-  // (20 rows / 8 per page = 3 pages) this is always a small array.
-  // If the dataset grows, this is the one place that would need
-  // windowing (truncating with "..."), but that is out of scope for
-  // Unit 2.
-  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+  const getPaginationItems = () => {
+    const delta = 1;
+    const range = [];
+    const rangeWithDots = [];
+    let l;
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+        range.push(i);
+      }
+    }
+
+    for (let i of range) {
+      if (l) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1);
+        } else if (i - l !== 1) {
+          rangeWithDots.push("...");
+        }
+      }
+      rangeWithDots.push(i);
+      l = i;
+    }
+
+    return rangeWithDots;
+  };
+
+  const pages = getPaginationItems();
 
   return (
     <nav
@@ -116,7 +138,14 @@ export function Pagination({
         </span>
       )}
 
-      {pages.map((p) => {
+      {pages.map((p, i) => {
+        if (p === "...") {
+          return (
+            <span key={`dots-${i}`} className="px-1 text-muted-foreground">
+              ...
+            </span>
+          );
+        }
         if (p === currentPage) {
           return (
             <span
@@ -135,7 +164,7 @@ export function Pagination({
         return (
           <Link
             key={p}
-            href={buildHref(p)}
+            href={buildHref(p as number)}
             replace
             scroll={false}
             aria-label={`Ir a la página ${p}`}
