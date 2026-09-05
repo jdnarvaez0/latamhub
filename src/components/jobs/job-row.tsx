@@ -70,6 +70,7 @@ export function JobRow({ job, index = 0, className, onSelect }: JobRowProps) {
           <Monogram
             letter={monogramLetter(job.startupName)}
             logoUrl={job.startupLogoUrl}
+            website={job.startupWebsite}
             alt={`${job.startupName} logo`}
             size="md"
           />

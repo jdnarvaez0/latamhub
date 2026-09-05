@@ -67,6 +67,7 @@ export function JobDetailDialog({ job, onClose }: JobDetailDialogProps) {
               <Monogram
                 letter={job.startupName.slice(0, 2).toUpperCase()}
                 logoUrl={job.startupLogoUrl}
+                website={job.startupWebsite}
                 alt={`${job.startupName} logo`}
                 size="md"
               />

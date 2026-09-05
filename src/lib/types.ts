@@ -68,6 +68,7 @@ export interface JobWithStartup extends Job {
   startupName: string;
   startupSlug: string;
   startupLogoUrl: string | null;
+  startupWebsite?: string | null;
   startupCountry: Country;
   startupCity: string | null;
 }

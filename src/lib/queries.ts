@@ -357,6 +357,7 @@ interface ActiveJobRow {
     name: string;
     slug: string;
     logo_url: string | null;
+    website: string | null;
     country: string;
     city: string | null;
     status: string;
@@ -392,6 +393,7 @@ function mapActiveJob(row: ActiveJobRow): JobWithStartup | null {
     startupName: s.name,
     startupSlug: s.slug,
     startupLogoUrl: s.logo_url,
+    startupWebsite: s.website ?? null,
     startupCountry: normalizeCountry(s.country),
     startupCity: s.city,
   };
@@ -428,6 +430,7 @@ export async function getActiveJobs(): Promise<JobsQuery> {
             name,
             slug,
             logo_url,
+            website,
             country,
             city,
             status
