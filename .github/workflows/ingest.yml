@@ -1,9 +1,9 @@
 name: Data Ingestion
 
 on:
-  # Weekly cron — every Sunday at 03:00 UTC (midnight Colombian time)
+  # Daily cron — every day at 11:00 UTC (06:00 AM Colombia time, UTC-5)
   schedule:
-    - cron: "0 3 * * 0"
+    - cron: "0 11 * * *"
 
   # Allow manual trigger from the Actions tab with optional controls
   workflow_dispatch:
@@ -46,7 +46,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # ── ingest-startups.ts (ATS: Greenhouse / Lever / Workable / Ashby) ──────
+      # ── ingest-startups.ts (Colombia ATS: Greenhouse / Lever / Workable / Ashby) ──
       - name: "[ingest-startups] Sync startup jobs from ATS APIs"
         if: |
           (github.event_name == 'schedule') ||
@@ -64,7 +64,6 @@ jobs:
       # ── ingest-yc.ts (YC OSS API — all LATAM active companies) ──────────────
       - name: "[ingest-yc] Sync YC LATAM companies"
         if: |
-          (github.event_name == 'schedule') ||
           (github.event.inputs.scripts == 'all') ||
           (github.event.inputs.scripts == 'ingest-yc')
         run: |
@@ -79,7 +78,6 @@ jobs:
       # ── ingest-startups-ar.ts (Startups Argentina directory) ─────────────────
       - name: "[ingest-ar] Sync Startups Argentina directory"
         if: |
-          (github.event_name == 'schedule') ||
           (github.event.inputs.scripts == 'all') ||
           (github.event.inputs.scripts == 'ingest-ar')
         run: |

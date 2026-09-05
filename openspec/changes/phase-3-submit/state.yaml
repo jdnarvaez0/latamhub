@@ -1,0 +1,28 @@
+change: phase-3-submit
+project: latamhub
+root: C:\Users\ACER\OneDrive\Escritorio\JD\JUAN\SideProjects\startupLATAM\latamhub
+phase: complete
+last_updated: 2026-09-05T14:09:00Z
+
+artifact_store: openspec
+delivery_strategy: single-pr
+
+artifacts:
+  proposal: true
+  tasks: true
+  apply_progress: [unit-1, unit-2, unit-3]
+  verify_report: [final]
+
+spec_domains:
+  - auth-email
+  - auth-google-oauth
+  - submit-form
+  - nav-auth-state
+
+verification_gates:
+  typecheck: pass  # 0 errors
+  lint: pass       # 0 errors (1 warning pre-existing in monogram.tsx)
+  build: pass      # 10 routes: /auth/callback, /auth/sign-in, /auth/sign-out, /auth/sign-up, /submit, /submit/success
+
+next_recommended: |
+  Deploy to Vercel + configure Supabase Auth redirect URLs (add https://latamhub.com/auth/callback to allowed redirects in Supabase dashboard)

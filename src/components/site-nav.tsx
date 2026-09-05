@@ -1,8 +1,9 @@
 import Link from "next/link";
 
 /**
- * Top navigation bar. Server component, fully static for Phase 0.
- * The mobile menu toggle will be added in a later phase as a client island.
+ * Top navigation bar.
+ *
+ * Public navigation bar with direct link to submit startup.
  */
 export function SiteNav() {
   return (
@@ -36,10 +37,12 @@ export function SiteNav() {
             </Link>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+
+        <div className="flex items-center gap-3">
           <span className="hidden bg-primary/10 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-primary sm:inline-block">
             LatAm · 5 países
           </span>
+
           <Link
             href="/submit"
             className="press bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-primary"
