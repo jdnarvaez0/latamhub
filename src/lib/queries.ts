@@ -66,6 +66,7 @@ interface JobRow {
   id: string;
   startup_id: string;
   title: string;
+  description: string | null;
   area: string | null;
   location: string | null;
   modality: string;
@@ -149,6 +150,7 @@ function mapJob(row: JobRow): Job {
     id: row.id,
     startupId: row.startup_id,
     title: row.title,
+    description: row.description ?? null,
     area: row.area,
     location: row.location,
     modality: normalizeModality(row.modality),
@@ -229,6 +231,7 @@ export async function getApprovedStartups(): Promise<DirectoryQuery> {
             id,
             startup_id,
             title,
+            description,
             area,
             location,
             modality,
@@ -305,6 +308,7 @@ export async function getStartupBySlug(slug: string): Promise<Startup | null> {
             id,
             startup_id,
             title,
+            description,
             area,
             location,
             modality,
@@ -341,6 +345,7 @@ interface ActiveJobRow {
   id: string;
   startup_id: string;
   title: string;
+  description: string | null;
   area: string | null;
   location: string | null;
   modality: string;
@@ -378,6 +383,7 @@ function mapActiveJob(row: ActiveJobRow): JobWithStartup | null {
     id: row.id,
     startupId: row.startup_id,
     title: row.title,
+    description: row.description ?? null,
     area: row.area,
     location: row.location,
     modality: normalizeModality(row.modality),
@@ -410,6 +416,7 @@ export async function getActiveJobs(): Promise<JobsQuery> {
           id,
           startup_id,
           title,
+          description,
           area,
           location,
           modality,

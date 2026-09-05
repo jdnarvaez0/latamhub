@@ -52,11 +52,37 @@ const supabase = createClient(SUPABASE_URL, SERVICE_KEY, {
 
 interface NormalizedJob {
   title: string;
+  description: string | null;
   area: string | null;
   location: string | null;
   modality: "remote" | "hybrid" | "onsite";
   salaryRange: string | null;
   applyUrl: string;
+}
+
+/** Clean HTML entities and tags into readable plaintext */
+function stripHtmlOrNormalize(html: string | undefined | null): string | null {
+  if (!html) return null;
+  const decoded = html
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, " ");
+
+  const text = decoded
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<\/li>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "• ")
+    .replace(/<h[1-6][^>]*>/gi, "\n\n")
+    .replace(/<\/h[1-6]>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  return text || null;
 }
 
 /** Infer modality from location/remote strings */
@@ -93,6 +119,7 @@ interface GHJob {
   location: { name: string };
   departments?: Array<{ name: string }>;
   metadata?: Array<{ name: string; value: string }> | null;
+  content?: string;
 }
 interface GHResponse {
   jobs: GHJob[];
@@ -105,6 +132,7 @@ async function fetchGreenhouse(token: string): Promise<NormalizedJob[]> {
 
   return data.jobs.map((j) => ({
     title: j.title,
+    description: stripHtmlOrNormalize(j.content),
     area: j.departments?.[0]?.name ?? null,
     location: j.location?.name ?? null,
     modality: inferModality(j.location?.name, null),
@@ -119,6 +147,8 @@ interface LeverJob {
   id: string;
   text: string;
   hostedUrl: string;
+  description?: string;
+  descriptionPlain?: string;
   categories: {
     team?: string;
     location?: string;
@@ -149,6 +179,7 @@ async function fetchLever(token: string): Promise<NormalizedJob[]> {
 
     return {
       title: j.text,
+      description: j.descriptionPlain ?? stripHtmlOrNormalize(j.description),
       area: j.categories.team ?? null,
       location: j.categories.location ?? null,
       modality,
@@ -164,6 +195,7 @@ interface WorkableJob {
   id: string;
   title: string;
   url: string;
+  description?: string;
   location: { location_str: string; remote: boolean };
   department: string;
 }
@@ -178,6 +210,7 @@ async function fetchWorkable(token: string): Promise<NormalizedJob[]> {
 
   return data.jobs.map((j) => ({
     title: j.title,
+    description: stripHtmlOrNormalize(j.description),
     area: j.department ?? null,
     location: j.location.location_str ?? null,
     modality: inferModality(j.location.location_str, j.location.remote),
@@ -194,6 +227,8 @@ interface AshbyJob {
   jobUrl: string;
   location: string;
   isRemote: boolean;
+  descriptionHtml?: string;
+  descriptionPlain?: string;
   team?: { name: string };
   compensationTierSummary?: string;
 }
@@ -208,6 +243,7 @@ async function fetchAshby(token: string): Promise<NormalizedJob[]> {
 
   return data.jobs.map((j) => ({
     title: j.title,
+    description: j.descriptionPlain ?? stripHtmlOrNormalize(j.descriptionHtml),
     area: j.team?.name ?? null,
     location: j.location ?? null,
     modality: inferModality(j.location, j.isRemote),
@@ -288,6 +324,7 @@ function toDbJob(
   return {
     startup_id: startupId,
     title: job.title,
+    description: job.description,
     area: job.area,
     location: job.location,
     modality: job.modality,

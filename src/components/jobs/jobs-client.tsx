@@ -6,19 +6,22 @@
  *  - All mutations → buildJobsUrl + router.replace(url, { scroll: false })
  *  - filterJobs runs in useMemo keyed by [jobs, searchParams]
  *  - Stable callbacks via useCallback so children's deps don't churn
+ *  - Manages selected job for the detail dialog
  *
  * Composition:
  *  - <JobFilters> (controlled: filter + onChange patch)
  *  - <JobRow> list (or <JobsEmptyState> when empty)
+ *  - <JobDetailDialog> (interactive slide-over for full vacancy details)
  *
  * The Server Component (app/jobs/page.tsx) wraps this island in
  * <Suspense> because useSearchParams requires it in production builds.
  */
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
+import { JobDetailDialog } from "@/components/jobs/job-detail-dialog";
 import { JobFilters } from "@/components/jobs/job-filters";
 import { JobRow } from "@/components/jobs/job-row";
 import { JobsEmptyState } from "@/components/jobs/jobs-empty-state";
@@ -53,6 +56,9 @@ export function JobsClient({ jobs }: JobsClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  // State for active job detail modal
+  const [selectedJob, setSelectedJob] = useState<JobWithStartup | null>(null);
 
   // Derive filter from the URL — single source of truth.
   const filter: JobsFilter = useMemo(
@@ -114,10 +120,21 @@ export function JobsClient({ jobs }: JobsClientProps) {
       ) : (
         <div className="space-y-4">
           {filteredJobs.map((job, i) => (
-            <JobRow key={job.id} job={job} index={i} />
+            <JobRow
+              key={job.id}
+              job={job}
+              index={i}
+              onSelect={setSelectedJob}
+            />
           ))}
         </div>
       )}
+
+      {/* Interactive job detail modal */}
+      <JobDetailDialog
+        job={selectedJob}
+        onClose={() => setSelectedJob(null)}
+      />
     </div>
   );
 }

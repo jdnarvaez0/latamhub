@@ -172,6 +172,7 @@ export default async function StartupDetailPage({
             <Monogram
               letter={monogramLetter(startup.name)}
               logoUrl={startup.logoUrl}
+              website={startup.website}
               alt={`${startup.name} logo`}
               size="lg"
             />

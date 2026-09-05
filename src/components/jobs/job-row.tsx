@@ -1,16 +1,13 @@
 /**
  * Job vacancy row for the /jobs directory.
  *
- * Presentational server component — no "use client" needed.
+ * Can be used as a presentational row or with an interactive onSelect handler.
  * Each row shows:
  *  - Startup monogram / logo (links to /startups/[slug])
- *  - Job title
+ *  - Job title (clicking opens detail dialog when onSelect is provided)
  *  - Tags: area, modality, salary range
  *  - Mono metadata: startup name · location
  *  - External "Postular" button (opens apply_url in a new tab)
- *
- * Deliberately mirrors the visual language of <StartupRow> so the
- * two directory pages feel like siblings.
  */
 import Link from "next/link";
 
@@ -32,9 +29,10 @@ export interface JobRowProps {
   /** Zero-based index for staggered entrance animation (capped at 8). */
   index?: number;
   className?: string;
+  onSelect?: (job: JobWithStartup) => void;
 }
 
-export function JobRow({ job, index = 0, className }: JobRowProps) {
+export function JobRow({ job, index = 0, className, onSelect }: JobRowProps) {
   const modalityLabel = MODALITY_LABELS[job.modality] ?? job.modality;
   const countryLabel =
     COUNTRY_LABELS[job.startupCountry] ?? job.startupCountry;
@@ -43,8 +41,19 @@ export function JobRow({ job, index = 0, className }: JobRowProps) {
 
   return (
     <article
+      onClick={() => onSelect?.(job)}
+      onKeyDown={(e) => {
+        if (onSelect && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onSelect(job);
+        }
+      }}
+      tabIndex={onSelect ? 0 : undefined}
+      role={onSelect ? "button" : undefined}
+      aria-label={onSelect ? `Ver detalles de ${job.title} en ${job.startupName}` : undefined}
       className={cn(
-        "group relative animate-flip-in border border-border bg-surface p-6 row-hover hover:border-primary",
+        "group relative animate-flip-in border border-border bg-surface p-6 row-hover hover:border-primary text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+        onSelect && "cursor-pointer",
         className
       )}
       style={{ animationDelay }}
@@ -55,7 +64,8 @@ export function JobRow({ job, index = 0, className }: JobRowProps) {
           href={`/startups/${job.startupSlug}`}
           tabIndex={-1}
           aria-hidden="true"
-          className="shrink-0"
+          onClick={(e) => e.stopPropagation()}
+          className="shrink-0 transition-opacity hover:opacity-80"
         >
           <Monogram
             letter={monogramLetter(job.startupName)}
@@ -84,6 +94,7 @@ export function JobRow({ job, index = 0, className }: JobRowProps) {
           <div className="flex flex-wrap gap-x-4 gap-y-1">
             <Link
               href={`/startups/${job.startupSlug}`}
+              onClick={(e) => e.stopPropagation()}
               className="text-muted-foreground hover:text-primary font-mono text-[11px] uppercase tracking-tight transition-colors"
             >
               {job.startupName}

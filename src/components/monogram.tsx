@@ -1,25 +1,42 @@
 import { cn } from "@/lib/utils";
 
+function extractDomain(url?: string | null): string | null {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url.startsWith("http") ? url : `https://${url}`);
+    return parsed.hostname.replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Square avatar used in nav, startup rows, and detail pages.
- * Shows the company logo image when available; falls back to the monogram letter.
+ * Shows the company logo image when available, falls back to high-res favicon from website,
+ * and falls back to the monogram letter if both are unavailable or fail to load.
  */
 export function Monogram({
   letter,
   logoUrl,
+  website,
   alt = "",
   size = "md",
   className,
 }: {
   letter: string;
   logoUrl?: string | null;
+  website?: string | null;
   alt?: string;
   size?: "md" | "lg";
   className?: string;
 }) {
   const sizeClasses = size === "lg" ? "size-20 text-2xl" : "size-16 text-lg";
+  const domain = extractDomain(website);
+  const resolvedLogoUrl =
+    logoUrl ||
+    (domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=128` : null);
 
-  if (logoUrl) {
+  if (resolvedLogoUrl) {
     return (
       <div
         className={cn(
@@ -29,7 +46,7 @@ export function Monogram({
         )}
       >
         <img
-          src={logoUrl}
+          src={resolvedLogoUrl}
           alt={alt}
           loading="lazy"
           className="size-full object-contain"

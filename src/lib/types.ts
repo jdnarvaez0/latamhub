@@ -51,6 +51,7 @@ export interface Job {
   id: string;
   startupId: string;
   title: string;
+  description?: string | null;
   area: string | null;
   location: string | null;
   modality: Modality;

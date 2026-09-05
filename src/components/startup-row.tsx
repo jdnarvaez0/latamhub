@@ -135,6 +135,7 @@ export function StartupRow({ startup, index = 0, className }: StartupRowProps) {
         <Monogram
           letter={monogramLetter(startup.name)}
           logoUrl={startup.logoUrl}
+          website={startup.website}
           alt={`${startup.name} logo`}
           size="md"
         />
